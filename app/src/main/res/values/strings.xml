@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">BirthdayAssistant</string>
+    <string name="dialog_read_contacts_permission_title">Permission needed</string>
+    <string name="dialog_read_contacts_permission_msg">We need access to your contacts in order to assist you with your contacts birthdays</string>
+
+    <!--Freepik icons: contact.svg-->
+<string name="Credit_icon_made_by_freepik">Icon made by Freepik from www.flaticon.com </string>
+</resources>
+
+
