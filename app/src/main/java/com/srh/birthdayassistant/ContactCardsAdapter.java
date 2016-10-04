@@ -1,23 +1,20 @@
 package com.srh.birthdayassistant;
 
-import android.app.DatePickerDialog;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
-import managers.SharedPrefManager;
 import utils.CollectionUtils;
 import utils.ContactUtils;
 import utils.ImageViewUtils;
+import utils.Resources;
+import utils.StringUtils;
 import utils.TextViewUtils;
 import utils.ViewUtils;
 
@@ -32,6 +29,7 @@ public class ContactCardsAdapter extends RecyclerView.Adapter<ContactCardsAdapte
 
     private List<ContactUtils.Contact> items;
     private Drawable defaultContactImage = ImageViewUtils.getSvgDrawable(R.drawable.ic_contact);
+    private final String defaultBirthDate = Resources.getString(R.string.contact_add_birthday_text);
 
     ContactCardsAdapter(List<ContactUtils.Contact> items){
         this.items = items;
@@ -47,7 +45,15 @@ public class ContactCardsAdapter extends RecyclerView.Adapter<ContactCardsAdapte
     public void onBindViewHolder(final ViewHolder holder, int position) {
         ContactUtils.Contact item = items.get(position);
         TextViewUtils.setTextAndVisibility(holder.title, item.getName());
-        TextViewUtils.setTextAndVisibility(holder.subtitle, item.getBirthDate());
+
+        String birthDate = item.getBirthDateStrWithOutYear();
+        if(StringUtils.isEmpty(birthDate)){
+            birthDate = defaultBirthDate;
+        }
+        TextViewUtils.setTextAndVisibility(holder.subtitle, birthDate);
+
+        TextViewUtils.setTextAndVisibility(holder.ageText, item.getAgeNextYear());
+
         ImageViewUtils.setImageUri(holder.image, item.getThumbnailUri(), defaultContactImage);
         holder.rowContainer.setOnClickListener(rowClickedListener);
     }
@@ -81,13 +87,15 @@ public class ContactCardsAdapter extends RecyclerView.Adapter<ContactCardsAdapte
         private final ImageView image;
         private final TextView title;
         private final TextView subtitle;
+        private final TextView ageText;
         public ViewHolder(View itemView) {
             super(itemView);
             rowContainer = itemView.findViewById(R.id.row_container);
             rowContainer.setTag(this);
+            image = (ImageView) itemView.findViewById(R.id.contact_image);
             title = (TextView) itemView.findViewById(R.id.contact_title);
             subtitle = (TextView) itemView.findViewById(R.id.contact_subtitle);
-            image = (ImageView) itemView.findViewById(R.id.contact_image);
+            ageText = (TextView) itemView.findViewById(R.id.age_text);
         }
     }
 }

@@ -42,6 +42,18 @@ public class ContactsManager {
         });
     }
 
+    public void insertContactEvent(RuntimePermissionRequester reqSender, final Long contactId, final int event, final String data){
+        reqSender.requestRuntimePermission(AskRunTimePermissionsUtils.Permission.WriteContacts, new BaseActivity.PermissionResult() {
+            @Override
+            public void onPermissionGranted() {
+                long rawContactId = ContactUtils.getRawContactId(contactId);
+                if(rawContactId != -1) {
+                    ContactNativeDataUpdater.insertOrUpdateBirthDateEvent(rawContactId, data);
+                }
+            }
+        });
+    }
+
     public void insertContactData(RuntimePermissionRequester reqSender, final Long contactId, final String mimeType, final String data){
         reqSender.requestRuntimePermission(AskRunTimePermissionsUtils.Permission.WriteContacts, new BaseActivity.PermissionResult() {
             @Override

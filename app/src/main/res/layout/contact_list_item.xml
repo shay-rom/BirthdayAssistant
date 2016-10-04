@@ -5,30 +5,28 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:minHeight="72dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:paddingStart="8dp"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:paddingEnd="8dp">
 
-    <com.makeramen.roundedimageview.RoundedImageView
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <ImageView
         android:id="@+id/contact_image"
         android:layout_height="64dp"
         android:layout_width="64dp"
-        android:paddingLeft="8dp"
-        android:paddingStart="8dp"
-        android:scaleType="fitCenter"
-        app:riv_corner_radius="10dp"
-        app:riv_mutate_background="true"
-        app:riv_tile_mode="clamp"
-        app:riv_oval="false" />
+        />
 
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingStart="8dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
-        android:paddingEnd="8dp">
+        android:paddingEnd="8dp"
+        android:layout_weight="1">
 
         <TextView
             android:layout_width="match_parent"
@@ -40,6 +38,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/contact_subtitle"
-            android:textSize="14sp"/>
+            android:textSize="14sp"
+            android:textColor="@color/colorPrimary"/>
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="@string/contact_age_title"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/age_text"
+            android:textSize="18sp"
+            android:textColor="@color/colorPrimary"/>
+    </LinearLayout>
+
 </LinearLayout>

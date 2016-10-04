@@ -3,6 +3,7 @@ package managers;
 import android.widget.Toast;
 
 import com.srh.birthdayassistant.App;
+import com.srh.birthdayassistant.BuildConfig;
 
 public class FeedbackManager {
 
@@ -18,4 +19,11 @@ public class FeedbackManager {
             });
         }
     }
+
+    public static void debug(final String text){
+        if (BuildConfig.DEBUG) {
+            showToast(text);
+        }
+    }
+
 }

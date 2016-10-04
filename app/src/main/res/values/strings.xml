@@ -3,6 +3,16 @@
     <string name="dialog_read_contacts_permission_title">Permission needed</string>
     <string name="dialog_read_contacts_permission_msg">We need access to your contacts in order to assist you with your contacts birthdays</string>
 
+    <string name="dialog_birthdate_picker_title">When is %s\'s birthday?</string>
+
+    <string name="contact_add_birthday_text">ADD BIRTHDAY</string>
+    <string name="add_birthday_to_calendar_title">%s\'s birthday</string>
+
+    <string name="contact_titles_today">Today</string>
+    <string name="contact_titles_this_week">This week</string>
+    <string name="contact_titles_this_month">This month</string>
+    <string name="contact_age_title">Turn</string>
+
     <!--Freepik icons: contact.svg-->
 <string name="Credit_icon_made_by_freepik">Icon made by Freepik from www.flaticon.com </string>
 </resources>

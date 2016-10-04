@@ -3,6 +3,7 @@ package com.srh.birthdayassistant;
 import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,20 +12,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
 
+import java.sql.Date;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
-import managers.FeedbackManager;
-import managers.SharedPrefManager;
-import utils.BaseActivity;
-import utils.CalendarUtils;
-import utils.ContactNativeDataUpdater;
-import utils.ContactUtils;
 import managers.ContactsManager;
-import utils.RuntimePermissionRequester;
+import managers.FeedbackManager;
+import utils.BaseActivity;
+import utils.BirthdayUtils;
+import utils.CalendarUtils;
+import utils.ContactUtils;
+import utils.Resources;
 import utils.StringUtils;
 
 import static utils.CalendarUtils.getFormatedBirthdate;
@@ -51,16 +51,40 @@ public class ContactListFragment extends Fragment implements ContactsManager.Con
             @Override
             public void onContactRowClicked(final int pos, final ContactUtils.Contact contact) {
                 Calendar calendar = Calendar.getInstance();
+                String birthDate = contact.getBirthDateStr();
+                if(StringUtils.isNotEmpty(birthDate)) {
+                    calendar.setTime(Date.valueOf(birthDate));
+                }
                 DatePickerDialog dialog = new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+                    private boolean alreadyDateSet = false;//allow to set date only once - called several two times when clicking the ok button
                     @Override
                     public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                        String formattedBirthDate = getFormatedBirthdate(year, month, day);
-                        contact.setBirthDate(formattedBirthDate);
-                        getAdapter().notifyItemChanged(pos);
+                        if(alreadyDateSet){
+                            return;
+                        }
+                        alreadyDateSet = true;
 
-                        saveContactBirthday(contact, formattedBirthDate);
+                        String formattedBirthDate = getFormatedBirthdate(year, month, day);
+
+                        if(!formattedBirthDate.equals(contact.getBirthDateStr())) {
+                            contact.setBirthDate(formattedBirthDate);
+                            getAdapter().notifyItemChanged(pos);
+
+                            saveContactBirthday(contact, formattedBirthDate);
+                        }
+
+                        BirthdayUtils.getCorrectYearForFutureBirthday(month, day);
+                        Calendar eventDate = BirthdayUtils.getCorrectYearForFutureBirthday(CalendarUtils.getCalendarFromDate(formattedBirthDate));
+                        eventDate.set(Calendar.HOUR_OF_DAY, 10);
+                        eventDate.set(Calendar.MINUTE, 0);
+
+                        CalendarUtils.startCalendar(getActivity(),
+                                Resources.getString(R.string.add_birthday_to_calendar_title, contact.getName()),
+                                eventDate);
+
                     }
                 }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+                dialog.setTitle(Resources.getString(R.string.dialog_birthdate_picker_title, contact.getName()));
                 dialog.show();
 
             }
@@ -71,7 +95,7 @@ public class ContactListFragment extends Fragment implements ContactsManager.Con
 
     private void saveContactBirthday(ContactUtils.Contact contact, String birthDate) {
         //SharedPrefManager.put(contact.lookupKey,formattedBirthDate);
-        ContactsManager.get().insertContactData((BaseActivity)getActivity(), contact.contactId, Constants.MIME_TYPE_BIRTHDATE, birthDate);
+        ContactsManager.get().insertContactEvent((BaseActivity)getActivity(), contact.contactId, ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY, birthDate);
 
     }
 
@@ -89,6 +113,8 @@ public class ContactListFragment extends Fragment implements ContactsManager.Con
     public void onContactLoaded(final List<ContactUtils.Contact> contacts, int whatWasLoaded) {
         //notify data set changed
         Collections.sort(contacts, new Comparator<ContactUtils.Contact>() {
+            private Calendar c1 = Calendar.getInstance();
+            private Calendar c2 = Calendar.getInstance();
             @Override
             public int compare(ContactUtils.Contact contact, ContactUtils.Contact other) {
                 if(contact == null || StringUtils.isEmpty(contact.getName())){
@@ -100,24 +126,27 @@ public class ContactListFragment extends Fragment implements ContactsManager.Con
                     return -1;
                 }
 
-                boolean meHasBirthday = !StringUtils.isEmpty(contact.getBirthDate());
-                boolean otherHasBirthday = !StringUtils.isEmpty(other.getBirthDate());
-
-                if(meHasBirthday && !otherHasBirthday) {
-                    //contact has birthday and the other does not, move it further down the list
-                    return -1;
-                }
-
-                if(!meHasBirthday && otherHasBirthday) {
-                    //other contact has birthday and contact has not, move it further down the list
+                if(contact.hasBirthday()) {
+                    if(!other.hasBirthday()) {
+                        //contact has birthday and the other does not, move it further down the list
+                        return -1;
+                    } else {
+                        //both has birthday
+                        c1.setTime(contact.getBirthDate());
+                        c2.setTime(other.getBirthDate());
+                        c2.set(Calendar.YEAR, c1.get(Calendar.YEAR));
+                        return c1.after(c2) ? -1 : 1;
+                    }
+                } else if(other.hasBirthday()){
+                    //only other has birthdate - move him further down the list
                     return 1;
+                } else {
+                    //both dont have birthday - sort it alphabetically according to its name
+                    return contact.getName().compareTo(other.getName());
                 }
-
-                //sort it alphabetically according to its name
-                return contact.getName().compareTo(other.getName());
             }
         });
-        FeedbackManager.showToast("contacts loaded: " + contacts.size());
+        FeedbackManager.debug("contacts loaded: " + contacts.size());
         App.get().runOnMainThread(new Runnable() {
             @Override
             public void run() {

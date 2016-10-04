@@ -1,20 +1,17 @@
 package utils;
 
 import android.content.ContentResolver;
-import android.content.Context;
-import android.content.CursorLoader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.LongSparseArray;
 
 import com.srh.birthdayassistant.App;
-import com.srh.birthdayassistant.Constants;
 
 import java.util.ArrayList;
+import java.sql.Date;
+import java.util.Calendar;
 import java.util.List;
-
-import managers.SharedPrefManager;
 
 public class ContactUtils {
 
@@ -39,12 +36,33 @@ public class ContactUtils {
 
     }
 
-    private static Cursor getJustContactsBirthdaysOurOwn() {
-        String[] projection = new String[]{
+    public static String getEventStartDate(long rawContactId, int eventType) {
+        Uri uri = ContactsContract.Data.CONTENT_URI;
+
+        String[] projection = new String[] {
+                ContactsContract.CommonDataKinds.Event.START_DATE,
                 ContactsContract.CommonDataKinds.Event.CONTACT_ID,
-                ContactsContract.Contacts.Data.DATA1
+                ContactsContract.CommonDataKinds.Event.TYPE,
         };
-        return getContactMimeTypeData(projection, Constants.MIME_TYPE_BIRTHDATE);
+
+        String where = ContactsContract.CommonDataKinds.Event.RAW_CONTACT_ID + " = ? AND " +
+                ContactsContract.Data.MIMETYPE + "= ? AND " +
+                        ContactsContract.CommonDataKinds.Event.TYPE + " = " +
+                        eventType;
+        String[] selectionArgs = new String[] {
+                ""+rawContactId, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
+        };
+
+        Cursor c = query(uri, projection, where, selectionArgs, null);
+
+        String startDate = null;
+        if (c != null) {
+            if(c.moveToFirst()) {
+                startDate = c.getString(0);
+            }
+            c.close();
+        }
+        return startDate;
     }
 
     private static Cursor getJustContactsBirthdaysNative() {
@@ -74,10 +92,8 @@ public class ContactUtils {
     }
 
     public static List<Contact> getJustContactsWithBirthdayList(){
-        Cursor cOurs = getJustContactsBirthdaysOurOwn();
         Cursor cTheDevice = getJustContactsBirthdaysNative();
-        List<Contact> list = CursorsToList(cOurs, cTheDevice);
-        cOurs.close();
+        List<Contact> list = CursorsToList(cTheDevice);
         cTheDevice.close();
         return list;
     }
@@ -91,12 +107,10 @@ public class ContactUtils {
 
     public static List<Contact> getAllContactsWithBirthdaysList(){
         Cursor cJustBirthdaysDevice = getJustContactsBirthdaysNative();
-        Cursor cOurOwn = getJustContactsBirthdaysOurOwn();
         Cursor cAllContacts = getAllContacts();
-        List<Contact> list = CursorsToList(cOurOwn, cAllContacts, cJustBirthdaysDevice);
+        List<Contact> list = CursorsToList(cAllContacts, cJustBirthdaysDevice);
 
         cJustBirthdaysDevice.close();
-        cOurOwn.close();
         cAllContacts.close();
 
         return list;
@@ -127,8 +141,41 @@ public class ContactUtils {
         public final Long contactId;
         public final String lookupKey;
         private String name;
-        private String birthDate;
         private Uri thumbnailUri;
+        private BirthDateData birthDateData;
+
+        public void setBirthDate(String birthDate) {
+            birthDateData = StringUtils.isNotEmpty(birthDate) ? new BirthDateData(birthDate) : null;
+        }
+
+        public java.util.Date getBirthDate() {
+            return birthDateData != null ? birthDateData.birthDate : null;
+        }
+
+        private class BirthDateData{
+            private final String birthDateStr;
+            private final String birthDateStrWithOutYear;
+            private final String age;
+            private final String ageNextYear;
+            private final Date birthDate;
+
+            BirthDateData(String birthDateStr){
+                this.birthDateStr = birthDateStr;
+                this.birthDate = StringUtils.isEmpty(birthDateStr) ? null : Date.valueOf(birthDateStr);
+                if(birthDate != null) {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(birthDate);
+                    birthDateStrWithOutYear = CalendarUtils.getFormatedBirthdate(c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+                    int ageNum = BirthdayUtils.getAge(birthDate);
+                    age = String.valueOf(ageNum);
+                    ageNextYear = String.valueOf(ageNum + 1);
+                } else {
+                    birthDateStrWithOutYear = null;
+                    age = null;
+                    ageNextYear = null;
+                }
+            }
+        }
 
         Contact(Cursor... cursor){
             String cId = getStringColumn(ContactsContract.CommonDataKinds.Event.CONTACT_ID, cursor);
@@ -141,7 +188,7 @@ public class ContactUtils {
 
             name = getStringColumn(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY, cursor);
 
-            birthDate = getStringColumn(ContactsContract.CommonDataKinds.Event.START_DATE, cursor);
+            setBirthDate(getStringColumn(ContactsContract.CommonDataKinds.Event.START_DATE, cursor));
         }
 
         public static String getStringColumn(String columnName, Cursor... cursor){
@@ -163,8 +210,8 @@ public class ContactUtils {
                 name = other.name;
             }
 
-            if(birthDate == null) {
-                birthDate = other.birthDate;
+            if(birthDateData == null) {
+                birthDateData = other.birthDateData;
             }
 
             if(thumbnailUri == null) {
@@ -194,17 +241,28 @@ public class ContactUtils {
             return name;
         }
 
-        public String getBirthDate() {
-            return birthDate;
+        public String getBirthDateStr() {
+            return birthDateData != null ? birthDateData.birthDateStr : null;
+        }
+
+        public String getBirthDateStrWithOutYear() {
+            return birthDateData != null ? birthDateData.birthDateStrWithOutYear : null;
         }
 
         public Uri getThumbnailUri() {
             return thumbnailUri;
         }
 
+        public boolean hasBirthday(){
+            return birthDateData != null && StringUtils.isNotEmpty(birthDateData.birthDateStr);
+        }
 
-        public void setBirthDate(String birthDate) {
-            this.birthDate = birthDate;
+        public String getAge() {
+            return birthDateData != null ? birthDateData.age : null;
+        }
+
+        public String getAgeNextYear() {
+            return birthDateData != null ? birthDateData.ageNextYear : null;
         }
     }
 

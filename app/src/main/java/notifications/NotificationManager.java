@@ -13,27 +13,13 @@ import com.srh.birthdayassistant.R;
 
 import java.util.Calendar;
 
+import utils.BirthdayUtils;
+
 public class NotificationManager {
 
     public static void scheduleBirthdayNotification(Notification notification, int month, int day){
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int thisYearCurrentMonth = calendar.get(Calendar.MONTH);
-        if(thisYearCurrentMonth > month) {
-            //set to next year
-            year++;
-        } else if(thisYearCurrentMonth == month) {
-            int thisMonthCurrentDay = calendar.get(Calendar.DAY_OF_MONTH);
-            if(thisMonthCurrentDay > day) {
-                //set to next year
-                year++;
-            }
-        }
-
-        int hour = 10;
-        int minute = 0;
-
-        calendar.set(year, month, day, hour, minute);
+        Calendar calendar = BirthdayUtils.getCorrectYearForFutureBirthday(month, day);
+        calendar.set(Calendar.HOUR, 10);
         NotificationManager.scheduleNotification(notification, calendar);
     }
 

@@ -11,6 +11,34 @@ public class ContactNativeDataUpdater {
         insertOrUpdate(rawContactId, mimeType, data);
     }
 
+    public static void insertOrUpdateBirthDateEvent (long rawContactId, String birthDate){
+        if(rawContactId == -1){
+            return;
+        }
+
+        ContentValues values = new ContentValues();
+        values.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE);
+        values.put(ContactsContract.CommonDataKinds.Event.TYPE, ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY);
+        values.put(ContactsContract.CommonDataKinds.Event.START_DATE, birthDate);
+
+        String oldEventStartDate = ContactUtils.getEventStartDate(rawContactId, ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY);
+        if(StringUtils.isEmpty(oldEventStartDate)) {
+            //no event - need to insert
+            values.put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId);
+
+            App.get().getContentResolver().insert(ContactsContract.Data.CONTENT_URI, values);
+        } else {
+            // has old event - need to update
+            //need to update
+            String where = ContactsContract.Data.RAW_CONTACT_ID + "= ? AND " +
+                    ContactsContract.Data.MIMETYPE + "= ?";
+            String[] selectionArgs = {""+rawContactId, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE};
+
+            App.get().getContentResolver().update(ContactsContract.Data.CONTENT_URI, values, where, selectionArgs);
+        }
+
+    }
+
     private static void insertOrUpdate(long rawContactId, String mimeType, String data){
         if(rawContactId == -1){
             return;
