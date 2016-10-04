@@ -6,7 +6,7 @@ import android.provider.CalendarContract;
 
 import com.srh.birthdayassistant.Constants;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -31,11 +31,15 @@ public class CalendarUtils {
 
     public static Calendar getCalendarFromDate(String date){
         Calendar c = Calendar.getInstance();
-        c.setTime(Date.valueOf(date));
+        c.setTime(java.sql.Date.valueOf(date));
         return c;
     }
 
     public static void startCalendar(Activity activity, String title, Calendar eventStart){
         activity.startActivity(getEditCalendarIntent(title, eventStart));
+    }
+
+    public static boolean isFutureDate(Date date){
+        return Calendar.getInstance().getTime().before(date);
     }
 }

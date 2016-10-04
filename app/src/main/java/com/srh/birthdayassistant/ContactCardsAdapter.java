@@ -5,11 +5,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
 
+import Widgets.BadgeImageView;
 import utils.CollectionUtils;
 import utils.ContactUtils;
 import utils.ImageViewUtils;
@@ -52,9 +52,9 @@ public class ContactCardsAdapter extends RecyclerView.Adapter<ContactCardsAdapte
         }
         TextViewUtils.setTextAndVisibility(holder.subtitle, birthDate);
 
-        TextViewUtils.setTextAndVisibility(holder.ageText, item.getAgeNextYear());
 
         ImageViewUtils.setImageUri(holder.image, item.getThumbnailUri(), defaultContactImage);
+        holder.image.setBadgeText(item.getAge());
         holder.rowContainer.setOnClickListener(rowClickedListener);
     }
 
@@ -84,18 +84,16 @@ public class ContactCardsAdapter extends RecyclerView.Adapter<ContactCardsAdapte
 
     static class ViewHolder extends RecyclerView.ViewHolder{
         private final View rowContainer;
-        private final ImageView image;
+        private final BadgeImageView image;
         private final TextView title;
         private final TextView subtitle;
-        private final TextView ageText;
         public ViewHolder(View itemView) {
             super(itemView);
             rowContainer = itemView.findViewById(R.id.row_container);
             rowContainer.setTag(this);
-            image = (ImageView) itemView.findViewById(R.id.contact_image);
+            image = (BadgeImageView) itemView.findViewById(R.id.contact_image);
             title = (TextView) itemView.findViewById(R.id.contact_title);
             subtitle = (TextView) itemView.findViewById(R.id.contact_subtitle);
-            ageText = (TextView) itemView.findViewById(R.id.age_text);
         }
     }
 }

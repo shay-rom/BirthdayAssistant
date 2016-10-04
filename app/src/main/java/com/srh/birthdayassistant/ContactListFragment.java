@@ -64,6 +64,13 @@ public class ContactListFragment extends Fragment implements ContactsManager.Con
                         }
                         alreadyDateSet = true;
 
+                        Calendar c = Calendar.getInstance();
+                        c.set(year, month, day);
+                        if(CalendarUtils.isFutureDate(c.getTime())){
+                            FeedbackManager.showToast(R.string.cannot_set_birthday_as_future_date);
+                            return;
+                        }
+
                         String formattedBirthDate = getFormatedBirthdate(year, month, day);
 
                         if(!formattedBirthDate.equals(contact.getBirthDateStr())) {
@@ -73,7 +80,6 @@ public class ContactListFragment extends Fragment implements ContactsManager.Con
                             saveContactBirthday(contact, formattedBirthDate);
                         }
 
-                        BirthdayUtils.getCorrectYearForFutureBirthday(month, day);
                         Calendar eventDate = BirthdayUtils.getCorrectYearForFutureBirthday(CalendarUtils.getCalendarFromDate(formattedBirthDate));
                         eventDate.set(Calendar.HOUR_OF_DAY, 10);
                         eventDate.set(Calendar.MINUTE, 0);

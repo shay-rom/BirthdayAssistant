@@ -7,11 +7,13 @@
 
     <string name="contact_add_birthday_text">ADD BIRTHDAY</string>
     <string name="add_birthday_to_calendar_title">%s\'s birthday</string>
+    <string name="share_image_title">Share image with:</string>
 
     <string name="contact_titles_today">Today</string>
     <string name="contact_titles_this_week">This week</string>
     <string name="contact_titles_this_month">This month</string>
     <string name="contact_age_title">Turn</string>
+    <string name="cannot_set_birthday_as_future_date">Cannot set birthday as future date</string>
 
     <!--Freepik icons: contact.svg-->
 <string name="Credit_icon_made_by_freepik">Icon made by Freepik from www.flaticon.com </string>
